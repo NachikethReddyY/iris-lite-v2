@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -204,6 +204,7 @@ export default function CreatePinScreen() {
           <Ionicons name="arrow-forward" size={20} color={canContinue ? "white" : "#999"} />
         </TouchableOpacity>
       </View>
+    </ScrollView>
     </ThemedView>
   );
 }
@@ -211,6 +212,12 @@ export default function CreatePinScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
     flexDirection: 'row',
