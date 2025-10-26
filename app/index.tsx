@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Redirect } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import * as SecureStore from 'expo-secure-store';
 
