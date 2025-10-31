@@ -1,39 +1,62 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { authService } from '@/services/authService';
+import { router } from 'expo-router';
+
+const KEYPAD = [
+  ['1', '2', '3'],
+  ['4', '5', '6'],
+  ['7', '8', '9'],
+  [' ', '0', 'back'],
+];
 
 export default function CreatePinScreen() {
+  const insets = useSafeAreaInsets();
+
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [isConfirming, setIsConfirming] = useState(false);
 
-  const handleNumberPress = (number: string) => {
+  const activePin = isConfirming ? confirmPin : pin;
+  const canAdvance = activePin.length >= 4;
+
+  const handleNumberPress = (value: string) => {
+    if (value === 'back') {
+      if (isConfirming && confirmPin.length) {
+        setConfirmPin(confirmPin.slice(0, -1));
+      } else if (!isConfirming && pin.length) {
+        setPin(pin.slice(0, -1));
+      }
+      return;
+    }
+
+    if (value.trim().length === 0) {
+      return;
+    }
+
     if (isConfirming) {
       if (confirmPin.length < 4) {
-        setConfirmPin(confirmPin + number);
+        setConfirmPin(confirmPin + value);
       }
-    } else {
-      if (pin.length < 4) {
-        setPin(pin + number);
-      }
+    } else if (pin.length < 4) {
+      setPin(pin + value);
     }
   };
 
-  const handleBackspace = () => {
-    if (isConfirming) {
-      setConfirmPin(confirmPin.slice(0, -1));
-    } else {
-      setPin(pin.slice(0, -1));
-    }
-  };
-
-  const handleContinue = async () => {
-    if (pin.length < 4) {
-      Alert.alert('Invalid PIN', 'PIN must be at least 4 digits long.');
+  const handlePrimaryAction = async () => {
+    if (activePin.length < 4) {
+      Alert.alert('Incomplete PIN', 'Please enter a 4-digit PIN.');
       return;
     }
 
@@ -43,7 +66,7 @@ export default function CreatePinScreen() {
     }
 
     if (pin !== confirmPin) {
-      Alert.alert('PIN Mismatch', 'The PINs do not match. Please try again.');
+      Alert.alert('PIN Mismatch', 'The PIN entries do not match. Re-enter your PIN.');
       setPin('');
       setConfirmPin('');
       setIsConfirming(false);
@@ -54,7 +77,8 @@ export default function CreatePinScreen() {
       await authService.setPIN(pin);
       router.push('/onboarding/connect-pi');
     } catch (error) {
-      Alert.alert('Error', 'Failed to set PIN. Please try again.');
+      console.error('Failed to store PIN:', error);
+      Alert.alert('Error', 'We could not save your PIN. Please try again.');
     }
   };
 
@@ -62,149 +86,119 @@ export default function CreatePinScreen() {
     if (isConfirming) {
       setIsConfirming(false);
       setConfirmPin('');
-    } else {
-      router.back();
+      return;
     }
+    router.back();
   };
-
-  const currentPin = isConfirming ? confirmPin : pin;
-  const canContinue = isConfirming ? confirmPin.length >= 4 : pin.length >= 4;
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: insets.top + 24,
+            paddingBottom: insets.bottom + 40,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.headerRow}>
+          <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
             <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <View style={styles.keypadIcon}>
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <View key={i} style={styles.iconDot} />
-            ))}
-          </View>
-        </View>
-
-        <ThemedText style={styles.title}>
-          {isConfirming ? 'Confirm PIN' : 'Create Security PIN'}
-        </ThemedText>
-
-        <ThemedText style={styles.subtitle}>
-          {isConfirming
-            ? 'Enter your PIN again to confirm'
-            : 'Create a PIN to securely delete your iris data if needed'
-          }
-        </ThemedText>
-
-        <View style={styles.pinDisplay}>
-          {[0, 1, 2, 3].map((index) => (
-            <View
-              key={index}
-              style={[
-                styles.pinDot,
-                index < currentPin.length && styles.pinDotFilled
-              ]}
-            />
-          ))}
-        </View>
-
-        <View style={styles.keypad}>
-          <View style={styles.keypadRow}>
-            {[1, 2, 3].map((number) => (
-              <TouchableOpacity
-                key={number}
-                style={[
-                  styles.keypadButton,
-                  (isConfirming ? confirmPin.length >= 4 : pin.length >= 4) && styles.keypadButtonDisabled
-                ]}
-                onPress={() => handleNumberPress(number.toString())}
-                disabled={isConfirming ? confirmPin.length >= 4 : pin.length >= 4}
-              >
-                <ThemedText style={[
-                  styles.keypadText,
-                  (isConfirming ? confirmPin.length >= 4 : pin.length >= 4) && styles.keypadTextDisabled
-                ]}>{number}</ThemedText>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.iconWrapper}>
+            <View style={styles.dotMatrix}>
+              {Array.from({ length: 9 }).map((_, index) => (
+                <View key={index} style={styles.matrixDot} />
+              ))}
+            </View>
           </View>
 
-          <View style={styles.keypadRow}>
-            {[4, 5, 6].map((number) => (
-              <TouchableOpacity
-                key={number}
-                style={[
-                  styles.keypadButton,
-                  (isConfirming ? confirmPin.length >= 4 : pin.length >= 4) && styles.keypadButtonDisabled
-                ]}
-                onPress={() => handleNumberPress(number.toString())}
-                disabled={isConfirming ? confirmPin.length >= 4 : pin.length >= 4}
-              >
-                <ThemedText style={[
-                  styles.keypadText,
-                  (isConfirming ? confirmPin.length >= 4 : pin.length >= 4) && styles.keypadTextDisabled
-                ]}>{number}</ThemedText>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <View style={styles.keypadRow}>
-            {[7, 8, 9].map((number) => (
-              <TouchableOpacity
-                key={number}
-                style={[
-                  styles.keypadButton,
-                  (isConfirming ? confirmPin.length >= 4 : pin.length >= 4) && styles.keypadButtonDisabled
-                ]}
-                onPress={() => handleNumberPress(number.toString())}
-                disabled={isConfirming ? confirmPin.length >= 4 : pin.length >= 4}
-              >
-                <ThemedText style={[
-                  styles.keypadText,
-                  (isConfirming ? confirmPin.length >= 4 : pin.length >= 4) && styles.keypadTextDisabled
-                ]}>{number}</ThemedText>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <View style={styles.keypadRow}>
-            <View style={styles.keypadButton} />
-            <TouchableOpacity
-              style={[
-                styles.keypadButton,
-                (isConfirming ? confirmPin.length >= 4 : pin.length >= 4) && styles.keypadButtonDisabled
-              ]}
-              onPress={() => handleNumberPress('0')}
-              disabled={isConfirming ? confirmPin.length >= 4 : pin.length >= 4}
-            >
-              <ThemedText style={[
-                styles.keypadText,
-                (isConfirming ? confirmPin.length >= 4 : pin.length >= 4) && styles.keypadTextDisabled
-              ]}>0</ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.keypadButton}
-              onPress={handleBackspace}
-            >
-              <Ionicons name="backspace" size={20} color="#007AFF" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        
-        <TouchableOpacity 
-          style={[styles.continueButton, !canContinue && styles.continueButtonDisabled]} 
-          onPress={handleContinue}
-          disabled={!canContinue}
-        >
-          <ThemedText style={[styles.buttonText, !canContinue && styles.buttonTextDisabled]}>
-            {isConfirming ? 'Complete Setup' : 'Next'}
+          <ThemedText style={styles.titleText}>
+            {isConfirming ? 'Confirm PIN' : 'Create Security PIN'}
           </ThemedText>
-          <Ionicons name="arrow-forward" size={20} color={canContinue ? "white" : "#999"} />
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <ThemedText style={styles.subtitleText}>
+            {isConfirming
+              ? 'Re-enter your PIN to make sure it matches.'
+              : 'Set a PIN used for securing sensitive actions like deleting iris data.'}
+          </ThemedText>
+
+          <View style={styles.pinRow}>
+            {Array.from({ length: 4 }).map((_, index) => {
+              const filled = index < activePin.length;
+              return <View key={index} style={[styles.pinDot, filled && styles.pinDotFilled]} />;
+            })}
+          </View>
+
+          <View style={styles.keypadContainer}>
+            {KEYPAD.map((row, rowIndex) => (
+              <View key={`row-${rowIndex}`} style={styles.keypadRow}>
+                {row.map((value) => {
+                  if (value === ' ') {
+                    return <View key="empty" style={[styles.keypadButton, styles.keypadPlaceholder]} />;
+                  }
+
+                  if (value === 'back') {
+                    return (
+                      <TouchableOpacity
+                        key="backspace"
+                        style={styles.keypadButton}
+                        onPress={() => handleNumberPress(value)}
+                      >
+                        <Ionicons name="backspace" size={20} color="#007AFF" />
+                      </TouchableOpacity>
+                    );
+                  }
+
+                  const disabled =
+                    (isConfirming && confirmPin.length >= 4) ||
+                    (!isConfirming && pin.length >= 4);
+
+                  return (
+                    <TouchableOpacity
+                      key={value}
+                      style={[styles.keypadButton, disabled && styles.keypadButtonDisabled]}
+                      disabled={disabled}
+                      onPress={() => handleNumberPress(value)}
+                    >
+                      <ThemedText
+                        style={[
+                          styles.keypadText,
+                          disabled && styles.keypadTextDisabled,
+                        ]}
+                      >
+                        {value}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.primaryButton, !canAdvance && styles.primaryButtonDisabled]}
+            onPress={handlePrimaryAction}
+            disabled={!canAdvance}
+          >
+            <ThemedText
+              style={[styles.primaryButtonText, !canAdvance && styles.primaryButtonTextDisabled]}
+            >
+              {isConfirming ? 'Complete Setup' : 'Next'}
+            </ThemedText>
+            <Ionicons
+              name="arrow-forward"
+              size={18}
+              color={canAdvance ? '#FFFFFF' : '#9CA3AF'}
+            />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -212,132 +206,137 @@ export default function CreatePinScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F8F9FA',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
+    paddingHorizontal: 24,
   },
-  header: {
+  headerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 60,
+    justifyContent: 'flex-start',
+    marginBottom: 12,
   },
-  backButton: {
+  headerButton: {
     padding: 10,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 122, 255, 0.08)',
   },
   content: {
     flex: 1,
-    padding: 20,
     alignItems: 'center',
   },
-  iconContainer: {
-    marginBottom: 30,
-    padding: 20,
-    borderRadius: 50,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+  iconWrapper: {
+    marginBottom: 24,
+    padding: 28,
+    borderRadius: 70,
+    backgroundColor: 'rgba(0, 122, 255, 0.12)',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    marginBottom: 40,
-    textAlign: 'center',
-    opacity: 0.8,
-    lineHeight: 22,
-  },
-  pinDisplay: {
+  dotMatrix: {
+    width: 64,
+    height: 64,
     flexDirection: 'row',
-    marginBottom: 50,
-    gap: 15,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+  },
+  matrixDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#007AFF',
+  },
+  titleText: {
+    fontSize: 28,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  subtitleText: {
+    fontSize: 15,
+    textAlign: 'center',
+    color: '#6B7280',
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  pinRow: {
+    flexDirection: 'row',
+    gap: 14,
+    marginBottom: 36,
   },
   pinDot: {
     width: 20,
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: '#D1D5DB',
   },
   pinDotFilled: {
     backgroundColor: '#007AFF',
     borderColor: '#007AFF',
   },
-  keypadIcon: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    width: 60,
-    height: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 4,
-  },
-  iconDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#007AFF',
-  },
-  keypad: {
-    width: 280,
-    marginBottom: 40,
+  keypadContainer: {
+    width: 260,
+    marginBottom: 36,
+    gap: 18,
   },
   keypadRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 15,
+    justifyContent: 'space-between',
   },
   keypadButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'white',
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  keypadPlaceholder: {
+    backgroundColor: 'transparent',
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  keypadButtonDisabled: {
+    backgroundColor: '#F3F4F6',
   },
   keypadText: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#333',
-  },
-  keypadButtonDisabled: {
-    backgroundColor: '#F5F5F5',
-    opacity: 0.5,
+    color: '#1F2937',
   },
   keypadTextDisabled: {
-    color: '#999',
+    color: '#9CA3AF',
   },
-  continueButton: {
+  primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 50,
-    paddingVertical: 18,
-    borderRadius: 30,
-    gap: 10,
     width: '100%',
+    paddingVertical: 18,
+    paddingHorizontal: 40,
+    borderRadius: 28,
+    gap: 10,
+    backgroundColor: '#007AFF',
   },
-  buttonText: {
-    color: 'white',
+  primaryButtonDisabled: {
+    backgroundColor: '#E5E7EB',
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
   },
-  continueButtonDisabled: {
-    backgroundColor: '#E0E0E0',
-  },
-  buttonTextDisabled: {
-    color: '#999',
+  primaryButtonTextDisabled: {
+    color: '#9CA3AF',
   },
 });

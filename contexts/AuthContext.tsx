@@ -2,9 +2,9 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { authService, AuthState } from '@/services/authService';
 
 interface AuthContextType extends AuthState {
-  login: () => Promise<boolean>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  markAuthenticated: (sessionExpiry?: number | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,16 +26,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: false,
     isLoading: true,
     user: null,
+    sessionExpiry: null,
   });
 
   const checkAuth = async () => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true }));
-      const isAuthenticated = await authService.checkAuthenticationStatus();
+      await authService.logout();
       setAuthState({
-        isAuthenticated,
+        isAuthenticated: false,
         isLoading: false,
-        user: isAuthenticated ? { id: 'user', name: 'Authenticated User' } : null,
+        user: null,
+        sessionExpiry: null,
       });
     } catch (error) {
       console.error('Error checking authentication:', error);
@@ -43,31 +45,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: false,
         isLoading: false,
         user: null,
+        sessionExpiry: null,
       });
     }
   };
 
-  const login = async (): Promise<boolean> => {
-    try {
-      setAuthState(prev => ({ ...prev, isLoading: true }));
-      const success = await authService.authenticateWithBiometrics();
-      
-      if (success) {
-        setAuthState({
-          isAuthenticated: true,
-          isLoading: false,
-          user: { id: 'user', name: 'Authenticated User' },
-        });
-        return true;
-      } else {
-        setAuthState(prev => ({ ...prev, isLoading: false }));
-        return false;
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setAuthState(prev => ({ ...prev, isLoading: false }));
-      return false;
-    }
+  const markAuthenticated = (sessionExpiry?: number | null) => {
+    setAuthState({
+      isAuthenticated: true,
+      isLoading: false,
+      user: { id: 'user', name: 'Authenticated User' },
+      sessionExpiry: sessionExpiry ?? null,
+    });
   };
 
   const logout = async () => {
@@ -78,10 +67,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: false,
         isLoading: false,
         user: null,
+        sessionExpiry: null,
       });
     } catch (error) {
       console.error('Logout error:', error);
-      setAuthState(prev => ({ ...prev, isLoading: false }));
+      setAuthState(prev => ({ ...prev, isLoading: false, isAuthenticated: false, sessionExpiry: null, user: null }));
     }
   };
 
@@ -91,9 +81,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     ...authState,
-    login,
     logout,
     checkAuth,
+    markAuthenticated,
   };
 
   return (

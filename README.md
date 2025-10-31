@@ -110,12 +110,11 @@ The app is configured to request Face ID permissions. The usage description is s
 
 ```
 app/
-├── auth.tsx              # Authentication screen
 ├── index.tsx             # Main entry point
 ├── _layout.tsx           # Root layout with AuthProvider
 └── (tabs)/
     ├── dashboard.tsx     # Main dashboard
-    ├── explore.tsx       # AI scanner features
+    ├── settings.tsx      # Settings and device management
     └── _layout.tsx       # Tab navigation
 
 contexts/
@@ -130,7 +129,7 @@ services/
 - **AuthProvider**: Manages authentication state across the app
 - **AuthService**: Handles biometric authentication and AI integration
 - **Dashboard**: Main authenticated interface
-- **AI Scanner**: Advanced scanning features
+- **Iris Capture Flow**: Dual-eye enrollment and verification experiences
 
 ## Contributing
 

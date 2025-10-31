@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Redirect } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import * as SecureStore from 'expo-secure-store';
 
 export default function Index() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isLoading } = useAuth();
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -34,11 +34,6 @@ export default function Index() {
   // If user hasn't completed onboarding, start the flow
   if (!hasCompletedOnboarding) {
     return <Redirect href="/onboarding/start" />;
-  }
-
-  // If user has completed onboarding but isn't authenticated, show auth screen
-  if (!isAuthenticated) {
-    return <Redirect href="/auth" />;
   }
 
   // If user is authenticated, go to dashboard
