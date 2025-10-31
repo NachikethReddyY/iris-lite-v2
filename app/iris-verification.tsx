@@ -352,15 +352,20 @@ export default function IrisVerificationScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleClose} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
+        </TouchableOpacity>
+        <ThemedText style={styles.headerTitle}>iris-verification</ThemedText>
+        <View style={styles.headerSpacer} />
+      </View>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.cameraSection}>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <Ionicons name="chevron-back" size={24} color="#007AFF" />
-          </TouchableOpacity>
           <View style={styles.cameraFrame}>
             {renderCameraContent()}
             <View style={styles.cameraOverlay}>
@@ -473,24 +478,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+  },
+  backButton: {
+    padding: 10,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  headerSpacer: {
+    width: 44,
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 0,
     paddingBottom: 80,
     gap: 24,
   },
   cameraSection: {
     alignItems: 'center',
     gap: 12,
-  },
-  closeButton: {
-    alignSelf: 'flex-start',
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
   },
   cameraFrame: {
     width: 260,
@@ -518,15 +535,15 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.7)',
   },
   overlayLabel: {
-    position: 'absolute',
-    bottom: 16,
     paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: 'rgba(0,0,0,0.6)',
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 12,
   },
   instructionText: {
     textAlign: 'center',
