@@ -1,6 +1,9 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import type { IrisEnhancement } from './iris/types';
+
+type IrisEnhancementMeta = Omit<IrisEnhancement, 'base64'>;
 
 const GEMINI_API_KEY = 'AIzaSyDwr9i19AK67Nv7AiDIR12OsMnRFPtbXYo';
 
@@ -29,9 +32,14 @@ export interface AuthStats {
 
 export interface IrisTemplate {
   id: string;
-  frames: string[]; // Base64 encoded iris frames
+  frames: string[]; // Enhanced frames used for verification
   quality: number;
   createdAt: number;
+  rawFrames?: string[]; // Original captures before enhancement
+  enhancement?: {
+    left?: IrisEnhancementMeta;
+    right?: IrisEnhancementMeta;
+  };
 }
 
 export class AuthService {
@@ -68,9 +76,7 @@ export class AuthService {
       });
 
       if (result.success) {
-        // Store authentication state
-        await SecureStore.setItemAsync('isAuthenticated', 'true');
-        await SecureStore.setItemAsync('authTimestamp', Date.now().toString());
+        await this.setSessionExpiry();
         return true;
       }
       return false;
@@ -82,24 +88,8 @@ export class AuthService {
 
   async checkAuthenticationStatus(): Promise<boolean> {
     try {
-      const isAuthenticated = await SecureStore.getItemAsync('isAuthenticated');
-      const authTimestamp = await SecureStore.getItemAsync('authTimestamp');
-      
-      if (!isAuthenticated || !authTimestamp) {
-        return false;
-      }
-
-      // Check if authentication is still valid (24 hours)
-      const now = Date.now();
-      const authTime = parseInt(authTimestamp);
-      const twentyFourHours = 24 * 60 * 60 * 1000;
-      
-      if (now - authTime > twentyFourHours) {
-        await this.logout();
-        return false;
-      }
-
-      return true;
+      await this.logout();
+      return false;
     } catch (error) {
       console.error('Error checking authentication status:', error);
       return false;
@@ -110,6 +100,7 @@ export class AuthService {
     try {
       await SecureStore.deleteItemAsync('isAuthenticated');
       await SecureStore.deleteItemAsync('authTimestamp');
+      await SecureStore.deleteItemAsync('session_expiry');
     } catch (error) {
       console.error('Error during logout:', error);
     }
@@ -246,9 +237,25 @@ export class AuthService {
 
   async verifyIrisMatch(capturedFrames: string[]): Promise<{ success: boolean; confidence: number; details: string }> {
     try {
+      if (!capturedFrames || capturedFrames.length < 2) {
+        return {
+          success: false,
+          confidence: 0,
+          details: 'Both eyes must be captured for verification',
+        };
+      }
+
       const storedTemplate = await this.getIrisTemplate();
       if (!storedTemplate) {
         return { success: false, confidence: 0, details: 'No iris template found' };
+      }
+
+      if (!storedTemplate.frames || storedTemplate.frames.length < 2) {
+        return {
+          success: false,
+          confidence: 0,
+          details: 'Stored template incomplete. Please re-enroll your iris data.',
+        };
       }
 
       // Mock iris matching logic
@@ -256,11 +263,11 @@ export class AuthService {
       const confidence = Math.random() * 0.3 + 0.7; // Mock confidence between 70-100%
       const success = confidence > 0.85;
 
-      return {
-        success,
-        confidence,
-        details: success ? 'Iris match confirmed' : 'Iris match failed'
-      };
+      const details = success
+        ? 'Iris match confirmed (enhanced frames)'
+        : 'Iris match failed (enhanced frames)';
+
+      return { success, confidence, details };
     } catch (error) {
       console.error('Error verifying iris match:', error);
       return { success: false, confidence: 0, details: 'Verification error' };

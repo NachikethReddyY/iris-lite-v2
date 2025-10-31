@@ -7,6 +7,7 @@ import {
   ScrollView,
   Switch,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,7 +18,7 @@ import * as SecureStore from 'expo-secure-store';
 
 export default function SettingsScreen() {
   const { logout } = useAuth();
-  const [sessionTimeout, setSessionTimeout] = useState(10);
+  const insets = useSafeAreaInsets();
   const [livenessDetection, setLivenessDetection] = useState(true);
   const [multiFactor, setMultiFactor] = useState(false);
   const [hasIrisTemplate, setHasIrisTemplate] = useState(false);
@@ -28,9 +29,6 @@ export default function SettingsScreen() {
 
   const loadSettings = async () => {
     try {
-      const timeout = authService.getSessionTimeout();
-      setSessionTimeout(timeout / (60 * 1000)); // Convert to minutes
-      
       const template = await authService.getIrisTemplate();
       setHasIrisTemplate(!!template);
     } catch (error) {
@@ -53,6 +51,29 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: () => {
             router.push('/onboarding/iris-scan');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleClearLogs = () => {
+    Alert.alert(
+      'Clear Authentication Logs',
+      'Remove all saved iris authentication attempts?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear Logs',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await authService.clearAuthLogs();
+              Alert.alert('Logs Cleared', 'Authentication history has been removed.');
+            } catch (error) {
+              console.error('Failed to clear logs:', error);
+              Alert.alert('Error', 'Unable to clear logs. Please try again.');
+            }
           }
         }
       ]
@@ -104,6 +125,7 @@ export default function SettingsScreen() {
                         [{ text: 'OK', onPress: logout }]
                       );
                     } catch (error) {
+                      console.error('Failed to delete data:', error);
                       Alert.alert('Error', 'Failed to delete data. Please try again.');
                     }
                   }
@@ -117,11 +139,6 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleSessionTimeoutChange = (value: number) => {
-    setSessionTimeout(value);
-    authService.setSessionTimeout(value * 60 * 1000); // Convert to milliseconds
-  };
-
   const handleSignOut = () => {
     Alert.alert(
       'Sign Out',
@@ -133,9 +150,11 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
+              await authService.deleteIrisTemplate();
               await logout();
               router.replace('/onboarding/start');
             } catch (error) {
+              console.error('Failed to sign out:', error);
               Alert.alert('Error', 'Failed to sign out. Please try again.');
             }
           }
@@ -150,7 +169,8 @@ export default function SettingsScreen() {
     subtitle, 
     onPress, 
     rightElement, 
-    destructive = false 
+    destructive = false,
+    showDivider = true,
   }: {
     icon: string;
     title: string;
@@ -158,9 +178,10 @@ export default function SettingsScreen() {
     onPress?: () => void;
     rightElement?: React.ReactNode;
     destructive?: boolean;
+    showDivider?: boolean;
   }) => (
     <TouchableOpacity 
-      style={styles.settingItem} 
+      style={[styles.settingItem, !showDivider && styles.settingItemNoDivider]} 
       onPress={onPress}
       disabled={!onPress}
     >
@@ -187,7 +208,14 @@ export default function SettingsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 40 }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
           <ThemedText style={styles.headerTitle}>
@@ -196,7 +224,11 @@ export default function SettingsScreen() {
         </View>
 
         {/* Authentication Settings */}
-        <ThemedView style={styles.section}>
+        <ThemedView
+          style={styles.section}
+          lightColor="#FFFFFF"
+          darkColor="rgba(255,255,255,0.08)"
+        >
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Authentication
           </ThemedText>
@@ -214,37 +246,6 @@ export default function SettingsScreen() {
             subtitle={hasIrisTemplate ? "Update your iris template" : "No iris template found"}
             onPress={handleReenrollIris}
           />
-          
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <Ionicons name="time" size={24} color="#007AFF" />
-              <View style={styles.settingText}>
-                <ThemedText style={styles.settingTitle}>Session Timeout</ThemedText>
-                <ThemedText style={styles.settingSubtitle}>
-                  {sessionTimeout} minutes
-                </ThemedText>
-              </View>
-            </View>
-          </View>
-          <View style={styles.timeoutContainer}>
-            {[1, 5, 10, 30].map((minutes) => (
-              <TouchableOpacity
-                key={minutes}
-                style={[
-                  styles.timeoutButton,
-                  sessionTimeout === minutes && styles.timeoutButtonActive
-                ]}
-                onPress={() => handleSessionTimeoutChange(minutes)}
-              >
-                <ThemedText style={[
-                  styles.timeoutButtonText,
-                  sessionTimeout === minutes && styles.timeoutButtonTextActive
-                ]}>
-                  {minutes}m
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
-          </View>
           
           <View style={styles.settingItem}>
             <View style={styles.settingLeft}>
@@ -284,7 +285,11 @@ export default function SettingsScreen() {
         </ThemedView>
 
         {/* Privacy & Security */}
-        <ThemedView style={styles.section}>
+        <ThemedView
+          style={styles.section}
+          lightColor="#FFFFFF"
+          darkColor="rgba(255,255,255,0.08)"
+        >
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Privacy & Security
           </ThemedText>
@@ -295,6 +300,13 @@ export default function SettingsScreen() {
             subtitle="View our privacy policy"
             onPress={() => Alert.alert('Privacy Policy', 'Privacy policy will be displayed here in a future update.')}
           />
+
+          <SettingItem
+            icon="trash-outline"
+            title="Clear Authentication Logs"
+            subtitle="Remove stored verification history"
+            onPress={handleClearLogs}
+          />
           
           <SettingItem
             icon="trash"
@@ -302,11 +314,16 @@ export default function SettingsScreen() {
             subtitle="Permanently remove all stored data"
             onPress={handleDeleteAllData}
             destructive
+            showDivider={false}
           />
         </ThemedView>
 
         {/* Device Settings */}
-        <ThemedView style={styles.section}>
+        <ThemedView
+          style={styles.section}
+          lightColor="#FFFFFF"
+          darkColor="rgba(255,255,255,0.08)"
+        >
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Device
           </ThemedText>
@@ -323,6 +340,7 @@ export default function SettingsScreen() {
             title="About"
             subtitle="App version and information"
             onPress={() => Alert.alert('About', 'Iris-Auth v1.0.0\nSecure biometric authentication powered by AI')}
+            showDivider={false}
           />
         </ThemedView>
 
@@ -337,28 +355,34 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#F8F9FA',
-    },
-    scrollView: {
-      flex: 1,
-      padding: 20,
-    },
-    header: {
-      marginBottom: 30,
-      paddingTop: 60,
-    },
-    headerTitle: {
-      fontSize: 32,
-      fontWeight: 'bold',
-      color: '#000',
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingHorizontal: 20,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#000',
+  },
   section: {
-    marginBottom: 30,
+    marginBottom: 24,
     padding: 20,
-    borderRadius: 15,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   sectionTitle: {
     fontSize: 18,
@@ -370,9 +394,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
+    paddingVertical: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  settingItemNoDivider: {
+    borderBottomWidth: 0,
   },
   settingLeft: {
     flexDirection: 'row',
@@ -390,47 +417,20 @@ const styles = StyleSheet.create({
   },
   settingSubtitle: {
     fontSize: 14,
-    opacity: 0.7,
+    color: '#6B7280',
   },
   destructiveText: {
     color: '#FF3B30',
-  },
-  timeoutContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 10,
-    paddingLeft: 39, // Align with the text
-  },
-  timeoutButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  timeoutButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    backgroundColor: '#E0E0E0',
-  },
-  timeoutButtonActive: {
-    backgroundColor: '#007AFF',
-  },
-  timeoutButtonText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#666',
-  },
-  timeoutButtonTextActive: {
-    color: 'white',
   },
   signOutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: 'rgba(255, 59, 48, 0.12)',
     paddingVertical: 18,
     borderRadius: 30,
     gap: 10,
-    marginBottom: 30,
+    marginTop: 8,
   },
   signOutText: {
     fontSize: 18,

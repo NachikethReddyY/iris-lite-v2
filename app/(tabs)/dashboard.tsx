@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,16 +15,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 export default function DashboardScreen() {
-  const { logout, user, sessionExpiry } = useAuth();
+  const { isAuthenticated, sessionExpiry } = useAuth();
   const [stats, setStats] = useState<AuthStats | null>(null);
   const [recentLogs, setRecentLogs] = useState<AuthLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setIsLoading(true);
       const [authStats, logs] = await Promise.all([
@@ -38,33 +34,35 @@ export default function DashboardScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboardData();
+    }, [loadDashboardData])
+  );
 
   const handleAuthenticate = () => {
     router.push('/iris-verification');
   };
 
-  const handleSignOut = async () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout();
-              router.replace('/onboarding/start');
-            } catch (error) {
-              Alert.alert('Error', 'Failed to sign out. Please try again.');
-            }
-          }
-        }
-      ]
-    );
-  };
+  const authStatusColor = isAuthenticated ? '#34C759' : '#FF3B30';
+  const authStatusTitle = isAuthenticated ? 'Authenticated' : 'Not authenticated';
+  const authStatusSubtitle = isAuthenticated
+    ? (sessionExpiry
+      ? `Session expires at ${new Date(sessionExpiry).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+      : 'Session active. Tap to re-verify any time.')
+    : 'Tap verify to confirm your identity.';
+  const sessionBadgeText = isAuthenticated ? 'Session Active' : 'Session Inactive';
+  const sessionBadgeIcon = isAuthenticated ? 'shield-checkmark' : 'warning';
+
+  const successRateDisplay = stats ? `${stats.successRate}%` : '0%';
+  const totalAttemptsDisplay = stats ? `${stats.totalAttempts}` : '0';
+  const weeklyAttemptsDisplay = stats ? `${stats.weeklyAttempts}` : '0';
 
   const getCurrentDate = () => {
     const date = new Date();
@@ -108,8 +106,10 @@ export default function DashboardScreen() {
 
         {/* Authentication Status */}
         <View style={styles.statusSection}>
-          <ThemedText style={styles.statusTitle}>Authenticated</ThemedText>
-          <ThemedText style={styles.statusSubtitle}>Tap to verify your identity</ThemedText>
+          <ThemedText style={[styles.statusTitle, { color: authStatusColor }]}>
+            {authStatusTitle}
+          </ThemedText>
+          <ThemedText style={styles.statusSubtitle}>{authStatusSubtitle}</ThemedText>
 
           {/* Large Eye Icon Circle */}
           <TouchableOpacity style={styles.eyeButton} onPress={handleAuthenticate}>
@@ -118,10 +118,10 @@ export default function DashboardScreen() {
             </View>
           </TouchableOpacity>
 
-          {/* Magic Scanner Status */}
-          <View style={styles.warningBadge}>
-            <Ionicons name="warning" size={16} color="white" />
-            <ThemedText style={styles.warningText}>Magic Scanner: Not Connected</ThemedText>
+          {/* Session Status */}
+          <View style={[styles.sessionBadge, { backgroundColor: authStatusColor }]}>
+            <Ionicons name={sessionBadgeIcon} size={16} color="white" />
+            <ThemedText style={styles.sessionBadgeText}>{sessionBadgeText}</ThemedText>
           </View>
         </View>
 
@@ -131,13 +131,18 @@ export default function DashboardScreen() {
 
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
-              <ThemedText style={styles.statValue}>100%</ThemedText>
+              <ThemedText style={styles.statValue}>{successRateDisplay}</ThemedText>
               <ThemedText style={styles.statLabel}>Success Rate</ThemedText>
             </View>
 
             <View style={styles.statCard}>
-              <ThemedText style={styles.statValue}>0</ThemedText>
+              <ThemedText style={styles.statValue}>{totalAttemptsDisplay}</ThemedText>
               <ThemedText style={styles.statLabel}>Total Attempts</ThemedText>
+            </View>
+
+            <View style={styles.statCard}>
+              <ThemedText style={styles.statValue}>{weeklyAttemptsDisplay}</ThemedText>
+              <ThemedText style={styles.statLabel}>Attempts (Last 7 Days)</ThemedText>
             </View>
           </View>
         </View>
@@ -246,12 +251,12 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#34C759',
     marginBottom: 5,
   },
   statusSubtitle: {
     fontSize: 14,
     color: '#666',
+    textAlign: 'center',
     marginBottom: 30,
   },
   eyeButton: {
@@ -270,16 +275,15 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  warningBadge: {
+  sessionBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FF3B30',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 6,
   },
-  warningText: {
+  sessionBadgeText: {
     color: 'white',
     fontSize: 14,
     fontWeight: '500',
@@ -296,10 +300,11 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 15,
   },
   statCard: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 15,
@@ -309,6 +314,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    minWidth: 150,
   },
   statValue: {
     fontSize: 28,
@@ -320,10 +326,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
+    lineHeight: 16,
   },
   logsSection: {
     paddingHorizontal: 20,
-    marginBottom: 100,
+    marginBottom: 80,
   },
   logsHeader: {
     flexDirection: 'row',
@@ -367,26 +374,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     padding: 20,
     color: '#666',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: 'white',
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 15,
-  },
-  navText: {
-    fontSize: 12,
-    color: '#007AFF',
-    marginTop: 2,
-  },
-  navTextInactive: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 2,
   },
 });

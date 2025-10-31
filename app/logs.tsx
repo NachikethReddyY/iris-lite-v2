@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { View, StyleSheet, ScrollView } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { authService, AuthLog } from '@/services/authService';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+
+export const options = {
+  title: 'Authentication Logs',
+};
 
 export default function LogsScreen() {
   const [logs, setLogs] = useState<AuthLog[]>([]);
@@ -30,28 +27,6 @@ export default function LogsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleClearLogs = () => {
-    Alert.alert(
-      'Clear Logs',
-      'Are you sure you want to clear all authentication logs?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await authService.clearAuthLogs();
-              setLogs([]);
-            } catch (error) {
-              Alert.alert('Error', 'Failed to clear logs.');
-            }
-          }
-        }
-      ]
-    );
   };
 
   const getLogIcon = (type: string) => {
@@ -86,53 +61,47 @@ export default function LogsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <ThemedText style={styles.headerTitle}>Authentication Logs</ThemedText>
-        <TouchableOpacity onPress={handleClearLogs} style={styles.clearButton}>
-          <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ThemedText>Loading logs...</ThemedText>
           </View>
         ) : logs.length > 0 ? (
-          <View style={styles.logsList}>
-            {logs.map((log) => (
-              <View key={log.id} style={styles.logItem}>
-                <View style={styles.logLeft}>
-                  <Ionicons
-                    name={getLogIcon(log.type)}
-                    size={20}
-                    color={getLogColor(log.type)}
-                  />
-                  <View style={styles.logContent}>
-                    <ThemedText style={styles.logDetails}>{log.details}</ThemedText>
-                    <ThemedText style={styles.logTime}>
-                      {new Date(log.timestamp).toLocaleString()}
-                    </ThemedText>
-                    {log.confidence && (
-                      <ThemedText style={styles.logConfidence}>
-                        Confidence: {Math.round(log.confidence * 100)}%
+          <View style={styles.contentWrapper}>
+            <View style={styles.logsList}>
+              {logs.map((log) => (
+                <View key={log.id} style={styles.logItem}>
+                  <View style={styles.logLeft}>
+                    <Ionicons
+                      name={getLogIcon(log.type)}
+                      size={20}
+                      color={getLogColor(log.type)}
+                    />
+                    <View style={styles.logContent}>
+                      <ThemedText style={styles.logDetails}>{log.details}</ThemedText>
+                      <ThemedText style={styles.logTime}>
+                        {new Date(log.timestamp).toLocaleString()}
                       </ThemedText>
-                    )}
+                      {log.confidence && (
+                        <ThemedText style={styles.logConfidence}>
+                          Confidence: {Math.round(log.confidence * 100)}%
+                        </ThemedText>
+                      )}
+                    </View>
                   </View>
+                  <ThemedText style={[styles.logType, { color: getLogColor(log.type) }]}>
+                    {log.type.replace('_', ' ').toUpperCase()}
+                  </ThemedText>
                 </View>
-                <ThemedText style={[styles.logType, { color: getLogColor(log.type) }]}>
-                  {log.type.replace('_', ' ').toUpperCase()}
-                </ThemedText>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
         ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="document-text-outline" size={48} color="#999" />
-            <ThemedText style={styles.emptyText}>No authentication logs found</ThemedText>
+          <View style={styles.contentWrapper}>
+            <View style={styles.emptyContainer}>
+              <Ionicons name="document-text-outline" size={48} color="#999" />
+              <ThemedText style={styles.emptyText}>No authentication logs found</ThemedText>
+            </View>
           </View>
         )}
       </ScrollView>
@@ -145,27 +114,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 20,
-    paddingTop: 60,
-  },
-  backButton: {
-    padding: 10,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#000',
-  },
-  clearButton: {
-    padding: 10,
-  },
   scrollView: {
     flex: 1,
-    padding: 20,
+  },
+  contentWrapper: {
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+    paddingTop: 16,
+    gap: 24,
   },
   loadingContainer: {
     flex: 1,
