@@ -29,46 +29,45 @@ export default function LandingScreen() {
           </View>
           
           <ThemedText type="title" style={styles.title}>
-            Welcome to Iris-Auth
+            Welcome to Iris Auth Lite
           </ThemedText>
           
           <ThemedText style={styles.subtitle}>
-            Your secure biometric authentication solution
+            Private iris capture with on-device enhancement and verification
           </ThemedText>
           
           <View style={styles.featuresList}>
             <View style={styles.featureItem}>
               <Ionicons name="eye" size={24} color="#007AFF" />
               <ThemedText style={styles.featureText}>
-                Advanced iris scanning technology
+                Five-frame burst capture with deterministic quality scoring
               </ThemedText>
             </View>
             
             <View style={styles.featureItem}>
-              <Ionicons name="lock-closed" size={24} color="#34C759" />
+              <Ionicons name="flash" size={24} color="#34C759" />
               <ThemedText style={styles.featureText}>
-                PIN fallback for reliability
+                QuickSRNet super-resolution runs locally via ONNX Runtime
               </ThemedText>
             </View>
             
             <View style={styles.featureItem}>
-              <Ionicons name="phone-portrait" size={24} color="#FF9500" />
+              <Ionicons name="lock-closed" size={24} color="#FF9500" />
               <ThemedText style={styles.featureText}>
-                Raspberry Pi integration
+                Secure PIN fallback and session timeout controls
               </ThemedText>
             </View>
             
             <View style={styles.featureItem}>
-              <Ionicons name="cloud-offline" size={24} color="#AF52DE" />
+              <Ionicons name="hardware-chip" size={24} color="#AF52DE" />
               <ThemedText style={styles.featureText}>
-                On-device processing only
+                Optional Raspberry Pi companion for dedicated optics
               </ThemedText>
             </View>
           </View>
           
           <ThemedText style={styles.description}>
-            Iris-Auth provides secure, reliable biometric authentication using your unique iris pattern. 
-            All processing happens on your device for maximum privacy and security.
+            Every frame stays on your device: capture, enhancement, fusion, and matching are handled offline to keep biometric data private while still delivering crisp, verification-ready imagery.
           </ThemedText>
         </View>
       </ScrollView>

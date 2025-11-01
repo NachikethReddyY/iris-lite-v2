@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,19 +14,23 @@ export default function StartScreen() {
     <ThemedView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.logoContainer}>
-          <Ionicons name="eye" size={120} color="#007AFF" />
+          <Image
+            source={require('@/assets/images/logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
         
         <ThemedText type="title" style={styles.title}>
-          Iris-Auth
+          Iris Auth Lite
         </ThemedText>
         
         <ThemedText style={styles.subtitle}>
-          Secure Biometric Authentication
+          On-device iris security from capture to match
         </ThemedText>
         
         <ThemedText style={styles.description}>
-          Advanced iris scanning technology for secure access control
+          Capture dual-eye bursts, enhance them with our QuickSRNet super-resolution model, and verify locally — no cloud services required.
         </ThemedText>
         
         <TouchableOpacity style={styles.getStartedButton} onPress={handleGetStarted}>
@@ -54,6 +58,11 @@ const styles = StyleSheet.create({
     padding: 30,
     borderRadius: 80,
     backgroundColor: 'rgba(0, 122, 255, 0.1)',
+  },
+  logoImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
   },
   title: {
     fontSize: 36,

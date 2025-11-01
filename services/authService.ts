@@ -1,11 +1,8 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { IrisEnhancement } from './iris/types';
 
 type IrisEnhancementMeta = Omit<IrisEnhancement, 'base64'>;
-
-const GEMINI_API_KEY = 'AIzaSyDwr9i19AK67Nv7AiDIR12OsMnRFPtbXYo';
 
 export interface AuthState {
   isAuthenticated: boolean;
@@ -43,12 +40,7 @@ export interface IrisTemplate {
 }
 
 export class AuthService {
-  private genAI: GoogleGenerativeAI;
   private sessionTimeout: number = 10 * 60 * 1000; // 10 minutes default
-
-  constructor() {
-    this.genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-  }
 
   async checkBiometricAvailability(): Promise<boolean> {
     try {
@@ -103,38 +95,6 @@ export class AuthService {
       await SecureStore.deleteItemAsync('session_expiry');
     } catch (error) {
       console.error('Error during logout:', error);
-    }
-  }
-
-  async generateAIResponse(prompt: string): Promise<string> {
-    try {
-      const model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
-    } catch (error) {
-      console.error('Error generating AI response:', error);
-      throw new Error('Failed to generate AI response');
-    }
-  }
-
-  async scanWithAI(imageData: string): Promise<string> {
-    try {
-      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      const result = await model.generateContent([
-        'Analyze this image and provide detailed insights about what you see.',
-        {
-          inlineData: {
-            data: imageData,
-            mimeType: 'image/jpeg'
-          }
-        }
-      ]);
-      const response = await result.response;
-      return response.text();
-    } catch (error) {
-      console.error('Error scanning with AI:', error);
-      throw new Error('Failed to scan image with AI');
     }
   }
 
@@ -212,27 +172,9 @@ export class AuthService {
   }
 
   async enhanceIrisQuality(frames: string[]): Promise<string[]> {
-    try {
-      const enhancedFrames: string[] = [];
-      for (const frame of frames) {
-        const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const result = await model.generateContent([
-          'Enhance this iris image for better biometric recognition. Focus on clarity, contrast, and removing artifacts.',
-          {
-            inlineData: {
-              data: frame,
-              mimeType: 'image/jpeg'
-            }
-          }
-        ]);
-        // In a real implementation, this would return enhanced image data
-        enhancedFrames.push(frame); // Mock return
-      }
-      return enhancedFrames;
-    } catch (error) {
-      console.error('Error enhancing iris quality:', error);
-      return frames; // Return original frames if enhancement fails
-    }
+    // Legacy hook retained for compatibility with older flows.
+    // The active iris pipeline uses services/ai/superResolution for on-device enhancement.
+    return frames;
   }
 
   async verifyIrisMatch(capturedFrames: string[]): Promise<{ success: boolean; confidence: number; details: string }> {

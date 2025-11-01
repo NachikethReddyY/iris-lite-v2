@@ -74,11 +74,11 @@ export default function ConnectPiScreen() {
         </View>
         
         <ThemedText type="title" style={styles.title}>
-          Connect Raspberry Pi
+          Pair Optional Capture Rig
         </ThemedText>
         
         <ThemedText style={styles.subtitle}>
-          Connect to your Raspberry Pi for enhanced iris scanning capabilities
+          Link a Raspberry Pi “Magic Scanner” when you want dedicated optics. You can also skip and continue with the on-device camera — the enhancement pipeline stays entirely offline either way.
         </ThemedText>
         
         {isScanning ? (
@@ -109,10 +109,10 @@ export default function ConnectPiScreen() {
               <View style={styles.noDevicesContainer}>
                 <Ionicons name="bluetooth-disabled" size={40} color="#999" />
                 <ThemedText style={styles.noDevicesText}>
-                  No Raspberry Pi devices found
+                  No capture rigs detected
                 </ThemedText>
                 <ThemedText style={styles.noDevicesSubtext}>
-                  Make sure your Pi is powered on and Bluetooth is enabled
+                  Power on the Pi, enable Bluetooth, and keep it nearby to try again.
                 </ThemedText>
               </View>
             )}

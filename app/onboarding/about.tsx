@@ -29,48 +29,45 @@ export default function AboutScreen() {
           </View>
           
           <ThemedText type="title" style={styles.title}>
-            About Iris-Auth
+            About Iris Auth Lite
           </ThemedText>
           
           <View style={styles.section}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
-              How It Works
+              How the pipeline works
             </ThemedText>
             <ThemedText style={styles.sectionText}>
-              Iris-Auth captures 8 high-quality frames of your iris using advanced camera technology. 
-              These frames are processed using AI enhancement and stored securely on your device.
+              We capture a five-frame burst for each eye, grade every frame with focus, exposure, occlusion, and iris size metrics, then fuse the best pick. The fused frame runs through our bundled QuickSRNet ONNX model for on-device super-resolution before verification.
             </ThemedText>
           </View>
           
           <View style={styles.section}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Privacy & Security
+              Built for offline privacy
             </ThemedText>
             <ThemedText style={styles.sectionText}>
-              • All biometric data stays on your device{'\n'}
-              • No data is transmitted to external servers{'\n'}
-              • PIN fallback ensures reliable access{'\n'}
-              • Session timeouts protect against unauthorized use
+              • Frames, templates, and logs never leave your device{'\n'}
+              • No external APIs or cloud calls are required{'\n'}
+              • Secure Store keeps PINs and templates encrypted{'\n'}
+              • Sessions auto-expire to prevent lingering access
             </ThemedText>
           </View>
           
           <View style={styles.section}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Raspberry Pi Integration
+              Optional hardware boost
             </ThemedText>
             <ThemedText style={styles.sectionText}>
-              Connect to your Raspberry Pi via Bluetooth for enhanced iris capture capabilities. 
-              The Pi provides specialized camera hardware for optimal biometric scanning.
+              Pair a Raspberry Pi capture rig over Bluetooth when you need dedicated imaging hardware. Prefer to stay lightweight? Skip it and use the device camera — the enhancement pipeline stays the same.
             </ThemedText>
           </View>
           
           <View style={styles.section}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
-              AI Enhancement
+              Transparent diagnostics
             </ThemedText>
             <ThemedText style={styles.sectionText}>
-              Low-quality camera inputs are enhanced using on-device AI processing to improve 
-              recognition accuracy and reliability.
+              Detailed quality summaries, fallback tips, and authentication logs help you tune lighting, distance, and stability without leaving the app.
             </ThemedText>
           </View>
         </View>

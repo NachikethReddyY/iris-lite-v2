@@ -22,7 +22,7 @@ import type { EyeLabel, IrisCaptureResult } from '@/services/iris/types';
 import { useIrisCaptureSession } from './onboarding/hooks/useIrisCaptureSession';
 
 export const options = {
-  headerShown: false,
+  title: 'iris-verification',
 };
 
 type Eye = EyeLabel;
@@ -352,14 +352,6 @@ export default function IrisVerificationScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleClose} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <ThemedText style={styles.headerTitle}>iris-verification</ThemedText>
-        <View style={styles.headerSpacer} />
-      </View>
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -478,30 +470,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-  },
-  backButton: {
-    padding: 10,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  headerSpacer: {
-    width: 44,
-  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 0,
+    paddingTop: 20,
     paddingBottom: 80,
     gap: 24,
   },
