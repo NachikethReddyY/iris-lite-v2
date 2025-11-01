@@ -22,7 +22,7 @@ import type { EyeLabel, IrisCaptureResult } from '@/services/iris/types';
 import { useIrisCaptureSession } from './onboarding/hooks/useIrisCaptureSession';
 
 export const options = {
-  headerShown: false,
+  title: 'iris-verification',
 };
 
 type Eye = EyeLabel;
@@ -358,9 +358,6 @@ export default function IrisVerificationScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.cameraSection}>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <Ionicons name="chevron-back" size={24} color="#007AFF" />
-          </TouchableOpacity>
           <View style={styles.cameraFrame}>
             {renderCameraContent()}
             <View style={styles.cameraOverlay}>
@@ -478,19 +475,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 80,
     gap: 24,
   },
   cameraSection: {
     alignItems: 'center',
     gap: 12,
-  },
-  closeButton: {
-    alignSelf: 'flex-start',
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
   },
   cameraFrame: {
     width: 260,
@@ -518,15 +509,15 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.7)',
   },
   overlayLabel: {
-    position: 'absolute',
-    bottom: 16,
     paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: 'rgba(0,0,0,0.6)',
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 12,
   },
   instructionText: {
     textAlign: 'center',

@@ -17,38 +17,38 @@ export default function TermsScreen() {
   const loadTermsContent = async () => {
     // Hardcoded terms and conditions content
     setTermsContent(`
-# Terms and Conditions - Iris-Auth
+# Terms and Conditions - Iris Auth Lite
 
-## Privacy Policy
+## Privacy Promise
 
-### Data Collection and Storage
-- **Biometric Data**: Your iris templates are processed and stored exclusively on your device. No biometric data is transmitted to external servers.
-- **Authentication Logs**: Anonymous authentication attempts are logged locally for security monitoring.
-- **PIN Data**: Your PIN is encrypted and stored securely on-device using industry-standard encryption.
+### Data Collection & Storage
+- **Iris Templates**: Captured frames are fused, enhanced with the on-device QuickSRNet model, and converted into templates that never leave your device.
+- **Auth Logs**: Verification summaries are stored locally so you can review activity. No remote telemetry is collected.
+- **PIN Codes**: Stored with hardware-backed encryption using Expo Secure Store.
 
-### Data Processing
-- **On-Device Processing**: All iris scanning and verification occurs locally on your device.
-- **AI Enhancement**: Low-quality camera inputs may be enhanced using on-device AI processing.
-- **No Cloud Storage**: Your biometric data never leaves your device or is stored in cloud services.
+### Processing Pipeline
+- **Offline Verified**: Capture, quality scoring, fusion, super-resolution, and matching all run on-device. There are no cloud calls or third-party services.
+- **Optional Hardware**: If you pair a Raspberry Pi capture rig, frames still process locally on your phone after transfer.
+- **Data Retention**: Raw frames are discarded once enhancement completes. Templates and logs remain until you remove them from Settings.
 
-## Terms of Service
+## Terms of Use
 
 ### Acceptable Use
-1. **Single User**: This application is designed for single-user authentication only.
-2. **Personal Use**: Intended for personal access control and device security.
-3. **No Misuse**: Users may not attempt to reverse engineer, modify, or exploit the application.
+1. **Single-User Focus**: Designed for personal authentication scenarios.
+2. **Lawful Use Only**: Do not scan users without their explicit consent.
+3. **Respect the App**: Avoid reverse-engineering or bypassing security safeguards.
 
-### Security Responsibilities
-1. **PIN Security**: Users are responsible for maintaining the confidentiality of their PIN.
-2. **Device Security**: Users must ensure their device remains secure and updated.
-3. **Bluetooth Security**: Users are responsible for maintaining secure Bluetooth connections to their Magic Scanner.
+### Your Responsibilities
+1. **Safeguard Your PIN**: Keep your fallback PIN private.
+2. **Maintain Device Security**: Use a passcode and keep your OS updated.
+3. **Bluetooth Awareness**: When pairing hardware, ensure you are connecting to trusted devices.
 
 ### Limitations
-1. **No Warranty**: The application is provided "as is" without warranty of any kind.
-2. **Accuracy**: While designed for high accuracy, biometric authentication may have false positives/negatives.
-3. **Device Compatibility**: Performance may vary based on device capabilities and camera quality.
+1. **No Warranty**: Provided “as is”. Accuracy can vary with lighting, distance, and movement.
+2. **Hardware Variance**: Performance depends on camera quality and device processing power.
+3. **Session Control**: Authentication sessions auto-expire; re-authentication may be required.
 
-By using Iris-Auth, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions and Privacy Policy.
+By continuing, you confirm you have read and agree to these terms and the privacy commitments above.
     `);
   };
 

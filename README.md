@@ -1,21 +1,21 @@
-# Iris-Auth 🔐
+# Iris Auth Lite 🔐
 
-A secure biometric authentication app built with React Native and Expo, powered by AI scanning technology.
+Fully offline iris capture, enhancement, and verification powered by React Native, Expo, and on-device super-resolution.
 
 ## Features
 
-- **Biometric Authentication**: Secure login using fingerprint and facial recognition
-- **AI-Powered Scanning**: Advanced AI technology for biometric data analysis
-- **Secure Storage**: Encrypted storage of authentication data
-- **Cross-Platform**: Works on iOS, Android, and Web
-- **Modern UI**: Beautiful, responsive interface with dark/light mode support
+- **On-Device Iris Capture**: Five-frame bursts per eye with deterministic quality scoring
+- **QuickSRNet Super-Resolution**: Bundled ONNX model enhances captures locally in under 500 ms
+- **Secure Template Storage**: Encrypted Secure Store keeps biometric templates and PINs private
+- **Session Controls**: Configurable timeouts and detailed verification logs
+- **Modern UI**: Responsive Expo Router experience with onboarding, verification, and settings flows
 
 ## Technology Stack
 
 - **React Native** with Expo
 - **Expo Local Authentication** for biometric auth
-- **Google Gemini AI** for AI-powered features
-- **Expo Secure Store** for secure data storage
+- **Expo Secure Store** for encrypted persistence
+- **onnxruntime-react-native** for on-device neural inference
 - **TypeScript** for type safety
 
 ## Getting Started
@@ -77,9 +77,7 @@ A secure biometric authentication app built with React Native and Expo, powered 
 
 ### Environment Variables
 
-The app uses the following environment variables:
-
-- `GEMINI_API_KEY`: Your Google Gemini API key for AI features
+No external API keys are required. The full iris pipeline runs locally.
 
 ### iOS Configuration
 
@@ -99,10 +97,10 @@ The app is configured to request Face ID permissions. The usage description is s
 
 ## Security Features
 
-- **On-Device Processing**: Biometric data never leaves your device
+- **On-Device Pipeline**: Capture, fusion, enhancement, and matching stay local
 - **Encrypted Storage**: All sensitive data is encrypted using Expo Secure Store
-- **Session Timeout**: Automatic logout after 24 hours
-- **Secure API**: Gemini API integration with secure key management
+- **Session Timeout**: Automatic logout after 24 hours (configurable)
+- **Detailed Logs**: Local audit trail with confidence scores and sources
 
 ## Development
 
@@ -127,9 +125,9 @@ services/
 ### Key Components
 
 - **AuthProvider**: Manages authentication state across the app
-- **AuthService**: Handles biometric authentication and AI integration
+- **AuthService**: Handles biometrics, Secure Store persistence, and session logic
 - **Dashboard**: Main authenticated interface
-- **Iris Capture Flow**: Dual-eye enrollment and verification experiences
+- **Iris Capture Flow**: Dual-eye enrollment and verification with on-device super-resolution
 
 ## Contributing
 

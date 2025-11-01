@@ -366,11 +366,11 @@ export default function IrisScanScreen() {
             {renderCameraContent()}
             <View style={styles.cameraOverlay}>
               <View style={styles.overlayRing} />
-              <ThemedText style={styles.overlayLabel}>
-                {overlayLabel}
-              </ThemedText>
             </View>
           </View>
+          <ThemedText style={styles.overlayLabel}>
+            {overlayLabel}
+          </ThemedText>
 
           <ThemedText style={styles.instructionsHeadline}>
             {isComplete
@@ -513,9 +513,8 @@ const styles = StyleSheet.create({
   },
   cameraOverlay: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 24,
   },
   overlayRing: {
     width: 200,
@@ -526,12 +525,15 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.6)',
   },
   overlayLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#FFFFFF',
     fontWeight: '600',
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginTop: 12,
+    textAlign: 'center',
   },
   cameraFallback: {
     flex: 1,
