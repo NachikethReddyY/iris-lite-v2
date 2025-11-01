@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Alert, useColorScheme } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,8 @@ import Markdown from 'react-native-markdown-display';
 export default function TermsScreen() {
   const [termsContent, setTermsContent] = useState('');
   const [accepted, setAccepted] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   React.useEffect(() => {
     loadTermsContent();
@@ -68,27 +70,33 @@ By continuing, you confirm you have read and agree to these terms and the privac
     router.back();
   };
 
+  const bodyColor = isDark ? 'rgba(236, 237, 238, 0.85)' : 'rgba(17, 24, 28, 0.82)';
+  const headingColor = isDark ? '#8FC4FF' : '#0A82FF';
+  const subheadingColor = isDark ? '#7AB6FF' : '#0A82FF';
+  const tertiaryHeadingColor = isDark ? '#6AA5F7' : '#0A82FF';
+  const listColor = isDark ? 'rgba(236, 237, 238, 0.7)' : 'rgba(17, 24, 28, 0.7)';
+
   const markdownStyles = {
     body: {
-      color: '#333',
+      color: bodyColor,
       fontSize: 16,
       lineHeight: 24,
     },
     heading1: {
-      color: '#007AFF',
+      color: headingColor,
       fontSize: 24,
       fontWeight: 'bold' as const,
       marginBottom: 16,
     },
     heading2: {
-      color: '#007AFF',
+      color: subheadingColor,
       fontSize: 20,
       fontWeight: '600' as const,
       marginTop: 20,
       marginBottom: 12,
     },
     heading3: {
-      color: '#007AFF',
+      color: tertiaryHeadingColor,
       fontSize: 18,
       fontWeight: '600' as const,
       marginTop: 16,
@@ -99,6 +107,7 @@ By continuing, you confirm you have read and agree to these terms and the privac
     },
     list_item: {
       marginBottom: 8,
+      color: listColor,
     },
     strong: {
       fontWeight: 'bold' as const,
