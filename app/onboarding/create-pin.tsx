@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  useColorScheme,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,6 +24,19 @@ const KEYPAD = [
 
 export default function CreatePinScreen() {
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const accentColor = '#007AFF';
+  const mutedTextColor = isDark ? 'rgba(236, 237, 238, 0.68)' : '#6B7280';
+  const surfaceColor = isDark ? 'rgba(33, 39, 48, 0.92)' : '#FFFFFF';
+  const surfaceMuted = isDark ? 'rgba(46, 52, 63, 0.9)' : '#F3F4F6';
+  const borderColor = isDark ? 'rgba(236, 237, 238, 0.12)' : 'rgba(17, 24, 28, 0.08)';
+  const keypadTextColor = isDark ? 'rgba(236, 237, 238, 0.9)' : '#1F2937';
+  const keypadTextDisabledColor = isDark ? 'rgba(236, 237, 238, 0.45)' : '#9CA3AF';
+  const primaryDisabledBackground = isDark ? 'rgba(236, 237, 238, 0.16)' : '#E5E7EB';
+  const primaryDisabledText = isDark ? 'rgba(236, 237, 238, 0.6)' : '#9CA3AF';
+  const headerButtonBackground = isDark ? 'rgba(0, 122, 255, 0.22)' : 'rgba(0, 122, 255, 0.08)';
+  const iconWrapperBackground = isDark ? 'rgba(0, 122, 255, 0.18)' : 'rgba(0, 122, 255, 0.12)';
 
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -105,16 +119,19 @@ export default function CreatePinScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
+          <TouchableOpacity
+            style={[styles.headerButton, { backgroundColor: headerButtonBackground }]}
+            onPress={handleBack}
+          >
             <Ionicons name="arrow-back" size={24} color="#007AFF" />
           </TouchableOpacity>
         </View>
 
         <View style={styles.content}>
-          <View style={styles.iconWrapper}>
+          <View style={[styles.iconWrapper, { backgroundColor: iconWrapperBackground }]}>
             <View style={styles.dotMatrix}>
               {Array.from({ length: 9 }).map((_, index) => (
-                <View key={index} style={styles.matrixDot} />
+                <View key={index} style={[styles.matrixDot, { backgroundColor: accentColor }]} />
               ))}
             </View>
           </View>
@@ -122,7 +139,7 @@ export default function CreatePinScreen() {
           <ThemedText style={styles.titleText}>
             {isConfirming ? 'Confirm PIN' : 'Create Security PIN'}
           </ThemedText>
-          <ThemedText style={styles.subtitleText}>
+          <ThemedText style={[styles.subtitleText, { color: mutedTextColor }]}>
             {isConfirming
               ? 'Re-enter your PIN to make sure it matches.'
               : 'Set a PIN used for securing sensitive actions like deleting iris data.'}
@@ -131,7 +148,16 @@ export default function CreatePinScreen() {
           <View style={styles.pinRow}>
             {Array.from({ length: 4 }).map((_, index) => {
               const filled = index < activePin.length;
-              return <View key={index} style={[styles.pinDot, filled && styles.pinDotFilled]} />;
+              return (
+                <View
+                  key={index}
+                  style={[
+                    styles.pinDot,
+                    { borderColor: filled ? accentColor : borderColor },
+                    filled && { backgroundColor: accentColor, borderColor: accentColor },
+                  ]}
+                />
+              );
             })}
           </View>
 
@@ -140,14 +166,32 @@ export default function CreatePinScreen() {
               <View key={`row-${rowIndex}`} style={styles.keypadRow}>
                 {row.map((value) => {
                   if (value === ' ') {
-                    return <View key="empty" style={[styles.keypadButton, styles.keypadPlaceholder]} />;
+                    return (
+                      <View
+                        key="empty"
+                        style={[
+                          styles.keypadButton,
+                          styles.keypadPlaceholder,
+                          { borderColor, borderWidth: StyleSheet.hairlineWidth },
+                        ]}
+                      />
+                    );
                   }
 
                   if (value === 'back') {
                     return (
                       <TouchableOpacity
                         key="backspace"
-                        style={styles.keypadButton}
+                        style={[
+                          styles.keypadButton,
+                          {
+                            backgroundColor: surfaceColor,
+                            borderColor,
+                            borderWidth: StyleSheet.hairlineWidth,
+                            shadowOpacity: isDark ? 0 : 0.08,
+                            elevation: isDark ? 0 : 2,
+                          },
+                        ]}
                         onPress={() => handleNumberPress(value)}
                       >
                         <Ionicons name="backspace" size={20} color="#007AFF" />
@@ -162,14 +206,28 @@ export default function CreatePinScreen() {
                   return (
                     <TouchableOpacity
                       key={value}
-                      style={[styles.keypadButton, disabled && styles.keypadButtonDisabled]}
+                      style={[
+                        styles.keypadButton,
+                        {
+                          backgroundColor: surfaceColor,
+                          borderColor,
+                          borderWidth: StyleSheet.hairlineWidth,
+                          shadowOpacity: isDark ? 0 : 0.08,
+                          elevation: isDark ? 0 : 2,
+                        },
+                        disabled && [
+                          styles.keypadButtonDisabled,
+                          { backgroundColor: surfaceMuted, borderColor },
+                        ],
+                      ]}
                       disabled={disabled}
                       onPress={() => handleNumberPress(value)}
                     >
                       <ThemedText
                         style={[
                           styles.keypadText,
-                          disabled && styles.keypadTextDisabled,
+                          { color: keypadTextColor },
+                          disabled && [styles.keypadTextDisabled, { color: keypadTextDisabledColor }],
                         ]}
                       >
                         {value}
@@ -182,19 +240,25 @@ export default function CreatePinScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.primaryButton, !canAdvance && styles.primaryButtonDisabled]}
+            style={[
+              styles.primaryButton,
+              !canAdvance && { backgroundColor: primaryDisabledBackground },
+            ]}
             onPress={handlePrimaryAction}
             disabled={!canAdvance}
           >
             <ThemedText
-              style={[styles.primaryButtonText, !canAdvance && styles.primaryButtonTextDisabled]}
+              style={[
+                styles.primaryButtonText,
+                !canAdvance && [styles.primaryButtonTextDisabled, { color: primaryDisabledText }],
+              ]}
             >
               {isConfirming ? 'Complete Setup' : 'Next'}
             </ThemedText>
             <Ionicons
               name="arrow-forward"
               size={18}
-              color={canAdvance ? '#FFFFFF' : '#9CA3AF'}
+              color={canAdvance ? '#FFFFFF' : primaryDisabledText}
             />
           </TouchableOpacity>
         </View>
@@ -206,7 +270,6 @@ export default function CreatePinScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   scrollView: {
     flex: 1,
@@ -223,7 +286,6 @@ const styles = StyleSheet.create({
   headerButton: {
     padding: 10,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 122, 255, 0.08)',
   },
   content: {
     flex: 1,
@@ -233,7 +295,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     padding: 28,
     borderRadius: 70,
-    backgroundColor: 'rgba(0, 122, 255, 0.12)',
   },
   dotMatrix: {
     width: 64,
@@ -248,7 +309,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#007AFF',
   },
   titleText: {
     fontSize: 28,
@@ -259,7 +319,6 @@ const styles = StyleSheet.create({
   subtitleText: {
     fontSize: 15,
     textAlign: 'center',
-    color: '#6B7280',
     lineHeight: 22,
     marginBottom: 32,
   },
@@ -273,11 +332,6 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
-  },
-  pinDotFilled: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
   },
   keypadContainer: {
     width: 260,
@@ -292,7 +346,6 @@ const styles = StyleSheet.create({
     width: 76,
     height: 76,
     borderRadius: 38,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -306,17 +359,12 @@ const styles = StyleSheet.create({
     elevation: 0,
     shadowOpacity: 0,
   },
-  keypadButtonDisabled: {
-    backgroundColor: '#F3F4F6',
-  },
+  keypadButtonDisabled: {},
   keypadText: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#1F2937',
   },
-  keypadTextDisabled: {
-    color: '#9CA3AF',
-  },
+  keypadTextDisabled: {},
   primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -328,15 +376,10 @@ const styles = StyleSheet.create({
     gap: 10,
     backgroundColor: '#007AFF',
   },
-  primaryButtonDisabled: {
-    backgroundColor: '#E5E7EB',
-  },
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
   },
-  primaryButtonTextDisabled: {
-    color: '#9CA3AF',
-  },
+  primaryButtonTextDisabled: {},
 });

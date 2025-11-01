@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  useColorScheme,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '@/components/themed-text';
@@ -15,6 +16,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 export default function DashboardScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const surfaceColor = isDark ? 'rgba(28, 33, 40, 0.92)' : '#FFFFFF';
+  const cardBorderColor = isDark ? 'rgba(236, 237, 238, 0.08)' : 'rgba(17, 24, 28, 0.08)';
+  const mutedTextColor = isDark ? 'rgba(236, 237, 238, 0.7)' : '#666666';
+  const secondaryTextColor = isDark ? 'rgba(236, 237, 238, 0.6)' : '#666666';
+  const listBackgroundColor = isDark ? 'rgba(33, 39, 48, 0.9)' : '#FFFFFF';
   const { isAuthenticated, sessionExpiry } = useAuth();
   const [stats, setStats] = useState<AuthStats | null>(null);
   const [recentLogs, setRecentLogs] = useState<AuthLog[]>([]);
@@ -96,11 +104,15 @@ export default function DashboardScreen() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <ThemedText style={styles.title}>Dashboard</ThemedText>
-            <ThemedText style={styles.welcomeText}>Welcome back!</ThemedText>
+            <ThemedText style={[styles.welcomeText, { color: mutedTextColor }]}>
+              Welcome back!
+            </ThemedText>
           </View>
           <View style={styles.headerRight}>
             <ThemedText style={styles.dayText}>{currentDateInfo.day}</ThemedText>
-            <ThemedText style={styles.dateText}>{currentDateInfo.date}</ThemedText>
+            <ThemedText style={[styles.dateText, { color: secondaryTextColor }]}>
+              {currentDateInfo.date}
+            </ThemedText>
           </View>
         </View>
 
@@ -109,7 +121,9 @@ export default function DashboardScreen() {
           <ThemedText style={[styles.statusTitle, { color: authStatusColor }]}>
             {authStatusTitle}
           </ThemedText>
-          <ThemedText style={styles.statusSubtitle}>{authStatusSubtitle}</ThemedText>
+          <ThemedText style={[styles.statusSubtitle, { color: secondaryTextColor }]}>
+            {authStatusSubtitle}
+          </ThemedText>
 
           {/* Large Eye Icon Circle */}
           <TouchableOpacity style={styles.eyeButton} onPress={handleAuthenticate}>
@@ -130,19 +144,58 @@ export default function DashboardScreen() {
           <ThemedText style={styles.sectionTitle}>Statistics</ThemedText>
 
           <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
+            <View
+              style={[
+                styles.statCard,
+                {
+                  backgroundColor: surfaceColor,
+                  borderColor: cardBorderColor,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  shadowOpacity: isDark ? 0 : 0.1,
+                  elevation: isDark ? 0 : 3,
+                },
+              ]}
+            >
               <ThemedText style={styles.statValue}>{successRateDisplay}</ThemedText>
-              <ThemedText style={styles.statLabel}>Success Rate</ThemedText>
+              <ThemedText style={[styles.statLabel, { color: mutedTextColor }]}>
+                Success Rate
+              </ThemedText>
             </View>
 
-            <View style={styles.statCard}>
+            <View
+              style={[
+                styles.statCard,
+                {
+                  backgroundColor: surfaceColor,
+                  borderColor: cardBorderColor,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  shadowOpacity: isDark ? 0 : 0.1,
+                  elevation: isDark ? 0 : 3,
+                },
+              ]}
+            >
               <ThemedText style={styles.statValue}>{totalAttemptsDisplay}</ThemedText>
-              <ThemedText style={styles.statLabel}>Total Attempts</ThemedText>
+              <ThemedText style={[styles.statLabel, { color: mutedTextColor }]}>
+                Total Attempts
+              </ThemedText>
             </View>
 
-            <View style={styles.statCard}>
+            <View
+              style={[
+                styles.statCard,
+                {
+                  backgroundColor: surfaceColor,
+                  borderColor: cardBorderColor,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  shadowOpacity: isDark ? 0 : 0.1,
+                  elevation: isDark ? 0 : 3,
+                },
+              ]}
+            >
               <ThemedText style={styles.statValue}>{weeklyAttemptsDisplay}</ThemedText>
-              <ThemedText style={styles.statLabel}>Attempts (Last 7 Days)</ThemedText>
+              <ThemedText style={[styles.statLabel, { color: mutedTextColor }]}>
+                Attempts (Last 7 Days)
+              </ThemedText>
             </View>
           </View>
         </View>
@@ -159,7 +212,17 @@ export default function DashboardScreen() {
           {recentLogs.length > 0 ? (
             <View style={styles.logsList}>
               {recentLogs.slice(0, 3).map((log) => (
-                <View key={log.id} style={styles.logItem}>
+                <View
+                  key={log.id}
+                  style={[
+                    styles.logItem,
+                    {
+                      backgroundColor: listBackgroundColor,
+                      borderColor: cardBorderColor,
+                      borderWidth: StyleSheet.hairlineWidth,
+                    },
+                  ]}
+                >
                   <Ionicons
                     name={
                       log.type === 'success' || log.type === 'pin_success' ? 'checkmark-circle' :
@@ -175,7 +238,7 @@ export default function DashboardScreen() {
                   />
                   <View style={styles.logContent}>
                     <ThemedText style={styles.logDetails}>{log.details}</ThemedText>
-                    <ThemedText style={styles.logTime}>
+                    <ThemedText style={[styles.logTime, { color: secondaryTextColor }]}>
                       {new Date(log.timestamp).toLocaleString()}
                     </ThemedText>
                   </View>
@@ -183,7 +246,9 @@ export default function DashboardScreen() {
               ))}
             </View>
           ) : (
-            <ThemedText style={styles.noLogsText}>No recent activity</ThemedText>
+            <ThemedText style={[styles.noLogsText, { color: mutedTextColor }]}>
+              No recent activity
+            </ThemedText>
           )}
         </View>
       </ScrollView>
@@ -194,7 +259,6 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   loadingContainer: {
     flex: 1,
@@ -226,22 +290,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#000',
     marginBottom: 5,
   },
   welcomeText: {
     fontSize: 16,
-    color: '#666',
   },
   dayText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
     marginBottom: 2,
   },
   dateText: {
     fontSize: 14,
-    color: '#666',
   },
   statusSection: {
     alignItems: 'center',
@@ -255,7 +315,6 @@ const styles = StyleSheet.create({
   },
   statusSubtitle: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 30,
   },
@@ -295,7 +354,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
     marginBottom: 15,
   },
   statsGrid: {
@@ -305,7 +363,6 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flexGrow: 1,
-    backgroundColor: 'white',
     padding: 20,
     borderRadius: 15,
     alignItems: 'center',
@@ -324,7 +381,6 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 16,
   },
@@ -349,7 +405,6 @@ const styles = StyleSheet.create({
   logItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
     padding: 15,
     borderRadius: 10,
     gap: 12,
@@ -361,18 +416,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     marginBottom: 2,
-    color: '#000',
   },
   logTime: {
     fontSize: 12,
     opacity: 0.6,
-    color: '#666',
   },
   noLogsText: {
     fontSize: 14,
     opacity: 0.7,
     textAlign: 'center',
     padding: 20,
-    color: '#666',
   },
 });

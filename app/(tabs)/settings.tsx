@@ -6,6 +6,7 @@ import {
   Alert,
   ScrollView,
   Switch,
+  useColorScheme,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
@@ -19,6 +20,12 @@ import * as SecureStore from 'expo-secure-store';
 export default function SettingsScreen() {
   const { logout } = useAuth();
   const insets = useSafeAreaInsets();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const tileBorderColor = isDark ? 'rgba(236, 237, 238, 0.1)' : 'rgba(17, 24, 28, 0.08)';
+  const mutedTextColor = isDark ? 'rgba(236, 237, 238, 0.68)' : '#6B7280';
+  const chevronColor = isDark ? 'rgba(236, 237, 238, 0.55)' : '#999999';
+  const destructiveBackground = isDark ? 'rgba(255, 59, 48, 0.2)' : 'rgba(255, 59, 48, 0.12)';
   const [livenessDetection, setLivenessDetection] = useState(true);
   const [multiFactor, setMultiFactor] = useState(false);
   const [hasIrisTemplate, setHasIrisTemplate] = useState(false);
@@ -180,8 +187,14 @@ export default function SettingsScreen() {
     destructive?: boolean;
     showDivider?: boolean;
   }) => (
-    <TouchableOpacity 
-      style={[styles.settingItem, !showDivider && styles.settingItemNoDivider]} 
+    <TouchableOpacity
+      style={[
+        styles.settingItem,
+        {
+          borderBottomColor: showDivider ? tileBorderColor : 'transparent',
+        },
+        !showDivider && styles.settingItemNoDivider,
+      ]}
       onPress={onPress}
       disabled={!onPress}
     >
@@ -196,13 +209,14 @@ export default function SettingsScreen() {
             {title}
           </ThemedText>
           {subtitle && (
-            <ThemedText style={styles.settingSubtitle}>{subtitle}</ThemedText>
+            <ThemedText style={[styles.settingSubtitle, { color: mutedTextColor }]}>
+              {subtitle}
+            </ThemedText>
           )}
         </View>
       </View>
-      {rightElement || (onPress && (
-        <Ionicons name="chevron-forward" size={20} color="#999" />
-      ))}
+      {rightElement ||
+        (onPress && <Ionicons name="chevron-forward" size={20} color={chevronColor} />)}
     </TouchableOpacity>
   );
 
@@ -225,9 +239,17 @@ export default function SettingsScreen() {
 
         {/* Authentication Settings */}
         <ThemedView
-          style={styles.section}
+          style={[
+            styles.section,
+            {
+              borderColor: tileBorderColor,
+              borderWidth: StyleSheet.hairlineWidth,
+              shadowOpacity: isDark ? 0 : 0.08,
+              elevation: isDark ? 0 : 3,
+            },
+          ]}
           lightColor="#FFFFFF"
-          darkColor="rgba(255,255,255,0.08)"
+          darkColor="rgba(33,39,48,0.92)"
         >
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Authentication
@@ -260,7 +282,10 @@ export default function SettingsScreen() {
             <Switch
               value={livenessDetection}
               onValueChange={setLivenessDetection}
-              trackColor={{ false: '#E0E0E0', true: '#007AFF' }}
+              trackColor={{
+                false: isDark ? 'rgba(236, 237, 238, 0.25)' : '#E0E0E0',
+                true: '#007AFF',
+              }}
               thumbColor={livenessDetection ? '#FFFFFF' : '#FFFFFF'}
             />
           </View>
@@ -278,7 +303,10 @@ export default function SettingsScreen() {
             <Switch
               value={multiFactor}
               onValueChange={setMultiFactor}
-              trackColor={{ false: '#E0E0E0', true: '#007AFF' }}
+              trackColor={{
+                false: isDark ? 'rgba(236, 237, 238, 0.25)' : '#E0E0E0',
+                true: '#007AFF',
+              }}
               thumbColor={multiFactor ? '#FFFFFF' : '#FFFFFF'}
             />
           </View>
@@ -286,9 +314,17 @@ export default function SettingsScreen() {
 
         {/* Privacy & Security */}
         <ThemedView
-          style={styles.section}
+          style={[
+            styles.section,
+            {
+              borderColor: tileBorderColor,
+              borderWidth: StyleSheet.hairlineWidth,
+              shadowOpacity: isDark ? 0 : 0.08,
+              elevation: isDark ? 0 : 3,
+            },
+          ]}
           lightColor="#FFFFFF"
-          darkColor="rgba(255,255,255,0.08)"
+          darkColor="rgba(33,39,48,0.92)"
         >
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Privacy & Security
@@ -320,9 +356,17 @@ export default function SettingsScreen() {
 
         {/* Device Settings */}
         <ThemedView
-          style={styles.section}
+          style={[
+            styles.section,
+            {
+              borderColor: tileBorderColor,
+              borderWidth: StyleSheet.hairlineWidth,
+              shadowOpacity: isDark ? 0 : 0.08,
+              elevation: isDark ? 0 : 3,
+            },
+          ]}
           lightColor="#FFFFFF"
-          darkColor="rgba(255,255,255,0.08)"
+          darkColor="rgba(33,39,48,0.92)"
         >
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Device
@@ -345,7 +389,10 @@ export default function SettingsScreen() {
         </ThemedView>
 
         {/* Sign Out */}
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+        <TouchableOpacity
+          style={[styles.signOutButton, { backgroundColor: destructiveBackground }]}
+          onPress={handleSignOut}
+        >
           <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
           <ThemedText style={styles.signOutText}>Sign Out</ThemedText>
         </TouchableOpacity>
@@ -357,7 +404,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   scrollView: {
     flex: 1,
@@ -371,13 +417,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#000',
   },
   section: {
     marginBottom: 24,
     padding: 20,
     borderRadius: 16,
-    backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
@@ -396,7 +440,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
   },
   settingItemNoDivider: {
     borderBottomWidth: 0,
@@ -417,7 +460,6 @@ const styles = StyleSheet.create({
   },
   settingSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
   },
   destructiveText: {
     color: '#FF3B30',
@@ -426,7 +468,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 59, 48, 0.12)',
     paddingVertical: 18,
     borderRadius: 30,
     gap: 10,
